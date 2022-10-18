@@ -276,11 +276,22 @@ class LiveFragment : Fragment() {
                         var videoResolution = res.VideoEncoderConfiguration.Resolution
                         var decorView = this@LiveFragment.activity?.window?.decorView
 
+                        val resource = context!!.resources.getIdentifier(
+                            "status_bar_height",
+                            "dimen",
+                            "android"
+                        )
+
+                        var statusBarHeight = 0;
+                        if (resource > 0) {
+                            statusBarHeight = context!!.resources.getDimensionPixelSize(resource)
+                        }
+
                         var videoRatio =  videoResolution.Height.toDouble() / videoResolution.Width.toDouble()
                         if (decorView?.height == null || decorView.width == null)
                             return
 
-                        var viewRatio =  Math.min(decorView.height.toDouble(), decorView.width.toDouble()) / Math.max(decorView.height.toDouble(), decorView.width.toDouble())
+                        var viewRatio =  Math.min(decorView.height.toDouble() - statusBarHeight, decorView.width.toDouble()) / Math.max(decorView.height.toDouble() - statusBarHeight, decorView.width.toDouble())
                         if (videoRatio > viewRatio)
                             binding.svVideo.layoutParams.height = (decorView.width * viewRatio).toInt()
                         else
