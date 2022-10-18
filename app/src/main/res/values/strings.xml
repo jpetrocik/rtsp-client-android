@@ -12,5 +12,5 @@
     <string name="username_title">Username</string>
     <string name="password_title">Password</string>
     <string name="onvif_title">ONVIF</string>
-    <string name="test">test</string>
+    <string name="audio_mute_title">Mute Audio</string>
 </resources>

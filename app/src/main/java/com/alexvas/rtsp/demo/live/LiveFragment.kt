@@ -89,7 +89,6 @@ class LiveFragment : Fragment() {
     }
 
     private fun enableActions(enabled: Boolean) {
-        enable(binding.muteButton, enabled)
         enable(binding.snapShotButton, enabled)
         enable(binding.tvStatus, enabled)
     }
@@ -153,14 +152,6 @@ class LiveFragment : Fragment() {
         binding.settingsButton.setOnClickListener {
             val myIntent = Intent(context, SettingsActivity::class.java)
             startActivity(myIntent)
-        }
-
-        binding.muteButton.setOnClickListener {
-            if (it is ImageButton) {
-                binding.svVideo.muteAudio = !binding.svVideo.muteAudio
-                val statusColor = if (binding.svVideo.muteAudio) R.color.colorPrimaryDisabled else R.color.colorPrimary
-                it.imageTintList = ResourcesCompat.getColorStateList(resources, statusColor, null)
-            }
         }
 
         binding.snapShotButton.setOnClickListener {

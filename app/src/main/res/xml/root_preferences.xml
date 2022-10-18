@@ -23,6 +23,11 @@
             app:title="@string/onvif_title"
             app:useSimpleSummaryProvider="true" />
 
+        <CheckBoxPreference
+            app:key="mute"
+            app:title="@string/audio_mute_title"/>
+
+
     </PreferenceCategory>
 
 </PreferenceScreen>
