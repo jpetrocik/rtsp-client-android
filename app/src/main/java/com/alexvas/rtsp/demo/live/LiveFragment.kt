@@ -1,12 +1,16 @@
 package com.alexvas.rtsp.demo.live
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
+import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import android.widget.Button
@@ -21,6 +25,10 @@ import com.alexvas.rtsp.demo.SettingsActivity
 import com.alexvas.rtsp.demo.databinding.FragmentLiveBinding
 import com.alexvas.rtsp.widget.RtspSurfaceView
 import net.petrocik.onvif.*
+import java.io.File
+import java.io.File.separator
+import java.io.FileOutputStream
+import java.io.OutputStream
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -159,8 +167,9 @@ class LiveFragment : Fragment() {
 
         binding.snapShotButton.setOnClickListener {
             val bitmap = getSnapshot()
-            // TODO Save snapshot to DCIM folder
+
             if (bitmap != null) {
+                saveImage(bitmap, context!!)
                 Toast.makeText(requireContext(), "Snapshot succeeded", Toast.LENGTH_LONG).show()
             } else {
                 Toast.makeText(requireContext(), "Snapshot failed", Toast.LENGTH_LONG).show()
@@ -238,6 +247,7 @@ class LiveFragment : Fragment() {
     companion object {
         private val TAG: String = LiveFragment::class.java.simpleName
         private const val DEBUG = true
+        private const val SNAPSHOT_FOLDER_NAME = "IPCamera"
     }
 
     private fun getPtzConfiguration(onvif: String) {
@@ -337,4 +347,55 @@ class LiveFragment : Fragment() {
 
     }
 
+    /// @param folderName can be your app's name
+    private fun saveImage(bitmap: Bitmap, context: Context) {
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            val values = contentValues()
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/" + SNAPSHOT_FOLDER_NAME)
+            values.put(MediaStore.Images.Media.IS_PENDING, true)
+            // RELATIVE_PATH and IS_PENDING are introduced in API 29.
+
+            val uri: Uri? = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+            if (uri != null) {
+                saveImageToStream(bitmap, context.contentResolver.openOutputStream(uri))
+                values.put(MediaStore.Images.Media.IS_PENDING, false)
+                context.contentResolver.update(uri, values, null, null)
+            }
+        } else {
+            val directory = File(Environment.getExternalStorageDirectory().toString() + separator + SNAPSHOT_FOLDER_NAME)
+            // getExternalStorageDirectory is deprecated in API 29
+
+            if (!directory.exists()) {
+                directory.mkdirs()
+            }
+            val fileName = System.currentTimeMillis().toString() + ".png"
+            val file = File(directory, fileName)
+            saveImageToStream(bitmap, FileOutputStream(file))
+            if (file.absolutePath != null) {
+                val values = contentValues()
+                values.put(MediaStore.Images.Media.DATA, file.absolutePath)
+                // .DATA is deprecated in API 29
+                context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+            }
+        }
+    }
+
+    private fun contentValues() : ContentValues {
+        val values = ContentValues()
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000);
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        return values
+    }
+
+    private fun saveImageToStream(bitmap: Bitmap, outputStream: OutputStream?) {
+        if (outputStream != null) {
+            try {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                outputStream.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }
