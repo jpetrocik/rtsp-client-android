@@ -164,25 +164,25 @@ class LiveFragment : Fragment() {
             }
         }
 
-        binding.preset1.setOnClickListener( {
+        binding.preset1.setOnClickListener {
             gotoPreset(1)
-        })
+        }
 
-        binding.preset2.setOnClickListener( {
+        binding.preset2.setOnClickListener {
             gotoPreset(2)
-        })
+        }
 
-        binding.preset3.setOnClickListener( {
+        binding.preset3.setOnClickListener {
             gotoPreset(3)
-        })
+        }
 
-        binding.preset4.setOnClickListener( {
+        binding.preset4.setOnClickListener {
             gotoPreset(4)
-        })
+        }
 
-        binding.preset5.setOnClickListener( {
+        binding.preset5.setOnClickListener {
             gotoPreset(5)
-        })
+        }
 
         return binding.root
     }
@@ -191,17 +191,22 @@ class LiveFragment : Fragment() {
         if (DEBUG) Log.v(TAG, "onResume()")
         super.onResume()
 
-        getConfiguration()
-
         val sharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(context /* Activity context */)
-        val url = sharedPreferences.getString("url", null)
-        val username = sharedPreferences.getString("username", null)
-        val password = sharedPreferences.getString("password", null)
+            PreferenceManager.getDefaultSharedPreferences(context)
 
-        getPtzConfiguration()
+        val onvif = sharedPreferences.getString("onvif", "")
+        if (onvif == null || onvif.equals("")) {
+            binding.presetPanel.visibility = View.GONE
+        } else {
+            binding.presetPanel.visibility = View.VISIBLE
+            getConfiguration(onvif)
+            getPtzConfiguration(onvif)
+        }
+        val url = sharedPreferences.getString("url", "")
+        val username = sharedPreferences.getString("username", "")
+        val password = sharedPreferences.getString("password", "")
 
-        if (url == null) {
+        if (url.equals("")) {
             val myIntent = Intent(context, SettingsActivity::class.java)
             startActivity(myIntent)
             return
@@ -217,6 +222,8 @@ class LiveFragment : Fragment() {
         if (DEBUG) Log.v(TAG, "onPause(), started:$started")
         super.onPause()
 
+        binding.presetPanel.visibility = View.GONE
+
         enablePresets(false)
         enableActions(false)
 
@@ -230,12 +237,7 @@ class LiveFragment : Fragment() {
         private const val DEBUG = true
     }
 
-    private fun getPtzConfiguration() {
-
-        val sharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(context)
-        val onvif = sharedPreferences.getString("onvif", null) ?: return
-
+    private fun getPtzConfiguration(onvif: String) {
         var ptzBinding = PTZBinding( object: IServiceEvents {
             override fun Starting() {}
             override fun Completed(result: OperationResult<*>?) {
@@ -243,7 +245,7 @@ class LiveFragment : Fragment() {
                 when (res) {
                     is GetConfigurationsResponse -> {
                         defaultPTZSpeed = res[0].DefaultPTZSpeed
-                        this@LiveFragment.getPresets()
+                        this@LiveFragment.getPresets(onvif)
                     }
                 }
             }}, onvif )
@@ -252,11 +254,7 @@ class LiveFragment : Fragment() {
 
     }
 
-    private fun getConfiguration() {
-
-        val sharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(context)
-        val onvif = sharedPreferences.getString("onvif", null) ?: return
+    private fun getConfiguration(onvif: String) {
 
         var mediaBinding = MediaBinding( object: IServiceEvents {
             override fun Starting() {}
@@ -295,11 +293,7 @@ class LiveFragment : Fragment() {
 
     }
 
-    private fun getPresets() {
-        val sharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(context)
-        val onvif = sharedPreferences.getString("onvif", null) ?: return
-
+    private fun getPresets(onvif: String) {
         var ptzBinding = PTZBinding( object: IServiceEvents {
             override fun Starting() {}
             override fun Completed(result: OperationResult<*>?) {
@@ -322,7 +316,9 @@ class LiveFragment : Fragment() {
         val sharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(context)
 
-        val onvif = sharedPreferences.getString("onvif", null) ?: return
+        val onvif = sharedPreferences.getString("onvif", "");
+        if (onvif.equals(""))
+            return;
 
         var ptzBinding = PTZBinding(object: IServiceEvents {
             override fun Starting() {}
