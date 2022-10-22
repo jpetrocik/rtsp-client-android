@@ -75,6 +75,9 @@ class LiveFragment : Fragment() {
             binding.pbLoading.visibility = View.GONE
             enableActions(true)
             enablePresets(true)
+
+            resize(1080, 1980)
+
         }
     }
 
@@ -199,7 +202,7 @@ class LiveFragment : Fragment() {
             binding.presetPanel.visibility = View.GONE
         } else {
             binding.presetPanel.visibility = View.VISIBLE
-            getConfiguration(onvif)
+//            getConfiguration(onvif)
             getPtzConfiguration(onvif)
         }
         val url = sharedPreferences.getString("url", "")
@@ -254,43 +257,50 @@ class LiveFragment : Fragment() {
 
     }
 
-    private fun getConfiguration(onvif: String) {
+//    private fun getConfiguration(onvif: String) {
+//
+//        var mediaBinding = MediaBinding( object: IServiceEvents {
+//            override fun Starting() {}
+//            override fun Completed(result: OperationResult<*>?) {
+//                var res = result!!.Result
+//                when (res) {
+//                    is Profile -> {
+//                        var videoResolution = res.VideoEncoderConfiguration.Resolution
+//                    }
+//                }
+//            }}, onvif )
+//
+//        mediaBinding.GetProfileAsync(profileToken)
+//
+//    }
 
-        var mediaBinding = MediaBinding( object: IServiceEvents {
-            override fun Starting() {}
-            override fun Completed(result: OperationResult<*>?) {
-                var res = result!!.Result
-                when (res) {
-                    is Profile -> {
-                        var videoResolution = res.VideoEncoderConfiguration.Resolution
-                        var decorView = this@LiveFragment.activity?.window?.decorView
+    private fun resize(height: Int, width: Int) {
+        var decorView = this@LiveFragment.activity?.window?.decorView
 
-                        val resource = context!!.resources.getIdentifier(
-                            "status_bar_height",
-                            "dimen",
-                            "android"
-                        )
+        val resource = context!!.resources.getIdentifier(
+            "status_bar_height",
+            "dimen",
+            "android"
+        )
 
-                        var statusBarHeight = 0;
-                        if (resource > 0) {
-                            statusBarHeight = context!!.resources.getDimensionPixelSize(resource)
-                        }
+        var statusBarHeight = 0;
+        if (resource > 0) {
+            statusBarHeight = context!!.resources.getDimensionPixelSize(resource)
+        }
 
-                        var videoRatio =  videoResolution.Height.toDouble() / videoResolution.Width.toDouble()
-                        if (decorView?.height == null || decorView.width == null)
-                            return
+        var videoRatio =  height.toDouble() / width.toDouble()
+        if (decorView?.height == null || decorView.width == null)
+            return
 
-                        var viewRatio =  Math.min(decorView.height.toDouble() - statusBarHeight, decorView.width.toDouble()) / Math.max(decorView.height.toDouble() - statusBarHeight, decorView.width.toDouble())
-                        if (videoRatio > viewRatio)
-                            binding.svVideo.layoutParams.height = (decorView.width * viewRatio).toInt()
-                        else
-                            binding.svVideo.layoutParams.height = (decorView.width * videoRatio).toInt()
-                    }
-                }
-            }}, onvif )
+        var layoutParams = binding.svVideo.layoutParams;
 
-        mediaBinding.GetProfileAsync(profileToken)
+        var viewRatio =  Math.min(decorView.height.toDouble() - statusBarHeight, decorView.width.toDouble()) / Math.max(decorView.height.toDouble() - statusBarHeight, decorView.width.toDouble())
+        layoutParams.height = if (videoRatio > viewRatio)
+                (decorView.width * viewRatio).toInt()
+        else
+            (decorView.width * videoRatio).toInt()
 
+        binding.svVideo.layoutParams = layoutParams;
     }
 
     private fun getPresets(onvif: String) {
