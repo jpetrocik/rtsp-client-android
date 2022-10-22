@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">IPCam</string>
+    <string name="app_name">BBC Live</string>
     <string name="string_live">\u2022 Live</string>
     <string name="title_logs">Logs</string>
     <string name="title_activity_settings">SettingsActivity</string>

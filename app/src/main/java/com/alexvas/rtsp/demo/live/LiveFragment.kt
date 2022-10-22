@@ -214,9 +214,9 @@ class LiveFragment : Fragment() {
 //            getConfiguration(onvif)
             getPtzConfiguration(onvif)
         }
-        val url = sharedPreferences.getString("url", "")
-        val username = sharedPreferences.getString("username", "")
-        val password = sharedPreferences.getString("password", "")
+        val url = sharedPreferences.getString("url", "rtsp://bigbear.petrocik.net:554/11")
+        val username = sharedPreferences.getString("username", "admin")
+        val password = sharedPreferences.getString("password", "102973")
 
         if (url.equals("")) {
             val myIntent = Intent(context, SettingsActivity::class.java)
